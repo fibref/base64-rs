@@ -1,16 +1,20 @@
 pub mod base64;
 
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+
+    use crate::base64::{base64_encode, base64_decode};
 
     #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+    fn encode_works() {
+        let result = base64_encode(&String::from("abcd"));
+        assert_eq!(result, String::from("YWJjZA=="));
+    }
+
+    #[test]
+    fn decode_works() {
+        let result = base64_decode(&String::from("YWJjZA=="));
+        assert_eq!(result, String::from("abcd"));
     }
 }
