@@ -1,35 +1,38 @@
 fn u8_to_u6(src: &[u8]) -> Vec<u8> {
     let mut result: Vec<u8> = Vec::new();
-    for i in src.chunks(3) {
-        if i.len() == 3 {
-            result.push(
-                i[0] >> 2
-            );
-            result.push(
-                ((i[0] & 0b00000011) << 4) | (i[1]>> 4)
-            );
-            result.push(
-                ((i[1] & 0b00001111) << 2) | (i[2]>> 6)
-            );
-            result.push(
-                i[2] & 0b00111111
-            );
-        } else if i.len() == 2 {
-            result.push(
-                i[0] >> 2
-            );
-            result.push(
-                ((i[0] & 0b00000011) << 4) | (i[1]>> 4)
-            );
-            result.push(
-                (i[1] & 0b00001111) << 2
-            );
-            result.push(64);// '='
-        } else {
-            result.push(i[0] >> 2);
-            result.push((i[0] & 0b00000011) << 4);
-            result.push(64);// '='
-            result.push(64);// '='
+    let mut arr = src.iter();
+    let mut part: u8;
+    
+    loop {
+        match arr.next() {
+            Option::Some(&i) => {
+                result.push(i >> 2);
+                part = (i & 0b00000011) << 4;
+            },
+            Option::None => {break;}
+        }
+        match arr.next() {
+            Option::Some(&i) => {
+                result.push(part | (i >> 4));
+                part = (i & 0b00001111) << 2;
+            },
+            Option::None => {
+                result.push(part);
+                result.push(64);
+                result.push(64); // '='
+                break;
+            }
+        }
+        match arr.next() {
+            Option::Some(&i) => {
+                result.push(part | (i >> 6));
+                result.push(i & 0b00111111);
+            },
+            Option::None => {
+                result.push(part);
+                result.push(64); // '='
+                break;
+            }
         }
     }
     result
@@ -38,22 +41,36 @@ fn u8_to_u6(src: &[u8]) -> Vec<u8> {
 //make sure u6.len() % 4 is 0
 fn u6_to_u8(src: Vec<u8>) -> Vec<u8> {
     let mut result: Vec<u8> = Vec::new();
-    for i in src.chunks(4) {
-        result.push(
-            (i[0] << 2) | (i[1] >> 4)
-        );
-        result.push(
-            (i[1] << 4) | ((i[2] & 0b00111100) >> 2)
-        );
-        result.push(
-            (i[2] << 6) | (i[3] & 0b00111111)
-        );
-    }
-    if src[src.len()-2] == 64 {
-        result.pop();
-        result.pop();
-    } else if src[src.len()-1] == 64 {
-        result.pop();
+    let mut arr = src.iter();
+    let mut part: u8;
+
+    loop {
+        match arr.next() {
+            Option::Some(&i) => {part = i << 2;},
+            Option::None => {break;}
+        }
+        match arr.next() {
+            Option::Some(&i) => {
+                result.push(part | (i >> 4));
+                part = i << 4;
+            },
+            Option::None => {todo!();}
+        }
+        match arr.next() {
+            Option::Some(&i) => {
+                if i == 64 {break;}
+                result.push(part | ((i & 0b00111100) >> 2));
+                part = i << 6;
+            },
+            Option::None => {todo!();}
+        }
+        match arr.next() {
+            Option::Some(&i) => {
+                if i == 64 {break;}
+                result.push(part | (i & 0b00111111));
+            },
+            Option::None => {todo!();}
+        }
     }
     result
 }
