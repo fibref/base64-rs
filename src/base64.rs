@@ -58,10 +58,9 @@ fn u6_to_u8(src: Vec<u8>) -> Vec<u8> {
     result
 }
 
-pub fn base64_encode(src: &String) -> String {
+fn base64_to_string(src: Vec<u8>) -> String {
     String::from_utf8(
-        u8_to_u6(src.as_bytes())
-            .iter()
+        src.iter()
             .map(|&x| match x {
                 0..=25 => x + 65, // A~Z
                 26..=51 => x + 71, // a~z
@@ -70,26 +69,36 @@ pub fn base64_encode(src: &String) -> String {
                 63 => 47, // '/'
                 64 => 61, // '='
                 _ => unreachable!()
-                })
+            })
             .collect()
     ).unwrap()
+}
+
+fn string_to_base64(src: &String) -> Vec<u8> {
+    src.as_bytes()
+        .iter()
+        .map(|x| match x {
+            65..=90 => x - 65, // A~Z
+            97..=122 => x - 71, // a~z
+            48..=57 => x + 4, // 0~9
+            43 => 62, // '+'
+            47 => 63, // '/'
+            61 => 64, // '='
+            _ => panic!("invalid base64 code")
+        })
+        .collect()
+}
+
+pub fn base64_encode(src: &String) -> String {
+    base64_to_string(
+        u8_to_u6(src.as_bytes())
+    )
 }
 
 pub fn base64_decode(src: &String) -> String {
     String::from_utf8(
         u6_to_u8(
-            src.as_bytes()
-                .iter()
-                .map(|x| match x {
-                    65..=90 => x - 65, // A~Z
-                    97..=122 => x - 71, // a~z
-                    48..=57 => x + 4, // 0~9
-                    43 => 62, // '+'
-                    47 => 63, // '/'
-                    61 => 64, // '='
-                    _ => panic!("invalid base64 code")
-                })
-                .collect()
+            string_to_base64(src)
         )
     ).unwrap()
 }
